@@ -1,4 +1,4 @@
-#目录
+# 目录
 
 - [macos 源码编译nginx](https://sturuby.github.io/nginx_learning/building_nginx_from_sources_on_osx)
 - [nginx配置文件的通用语法](https://sturuby.github.io/nginx_learning/nginx_grammar)
