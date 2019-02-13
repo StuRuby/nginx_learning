@@ -1,5 +1,8 @@
-# nginx全局配置参数
+# nginx配置指南
 本配置只用于解释每个参数的功能，直接使用可能会报错！
+
+
+## nginx全局配置参数
 ``` nginx
 # 使用这个参数来配置worker进程的用户和组，如果忽略group,那么group的名字等于该参数指定的用户的用户组
 user  nobody;
@@ -100,3 +103,30 @@ http {
 
 
 ```
+
+
+## 使用include文件
+在nginx配置文件中，`include`文件可以在任何地方，以便增强配置文件的可读性，并且能够使得部分配置文件重新使用。使用`include`文件，要确保被包含的文件自身有正确的Nginx语法，即配置指令和块(blocks),然后指定这些文件的路径
+
+``` nginx
+include /opt/local/etc/nginx/mime.types;
+```
+
+在路径中也可以使用通配符，来表示可以配置多个文件。
+``` nginx
+include /opt/local/etc/nginx/vhost/*.conf;
+```
+
+如果没有给定全路径，那么Nginx将会依据它的主配置文件路径进行搜索。Nginx测试配置文件很容易，通过下面的命令来完成。
+
+``` shell
+nginx -t -c <path_to_nginx.conf>
+```
+该命令将测试Nginx的配置文件，包括`include`文件，但是它只检查语法错误。
+
+## HTTP的server部分
+
+HTTP的server部分控制了HTTP模块的方方面面，是使用最多的一个部分。该部分的配置主要用于处理HTTP连接，因此该模块提供了相当数量的指令。下面我们来具体看一下这部分的内容。
+
+### 
+
