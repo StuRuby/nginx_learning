@@ -128,5 +128,10 @@ nginx -t -c <path_to_nginx.conf>
 
 HTTP的server部分控制了HTTP模块的方方面面，是使用最多的一个部分。该部分的配置主要用于处理HTTP连接，因此该模块提供了相当数量的指令。下面我们来具体看一下这部分的内容。
 
-### 
+### 客户端指令
+ 
+http 客户端指令
 
+|http客户端指令|说明|
+|--|--|
+|chunked_transfer_encoding|在发送给客户端的响应中 ， 的块传输编码该指令允许禁用 http/1 . 1 标准|
