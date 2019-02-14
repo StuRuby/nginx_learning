@@ -1,5 +1,7 @@
 # 用GoAccess实现可视化并实时监控access日志
 
+[返回首页](https://sturuby.github.io/nginx_learning/)
+
 Get Started
 Here are the basic steps on how to get started with GoAccess v1.3
 1. Download GoAccess

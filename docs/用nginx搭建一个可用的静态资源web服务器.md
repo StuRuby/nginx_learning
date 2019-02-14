@@ -1,5 +1,7 @@
 # 用nginx搭建一个可用的静态资源web服务器
 
+[返回首页](https://sturuby.github.io/nginx_learning/)
+
 这里使用`arcgis js api sdk`作为静态资源服务器的资源。[下载地址](https://developers.arcgis.com/downloads/apis-and-sdks?product=javascript)
 
 ## 配置nginx

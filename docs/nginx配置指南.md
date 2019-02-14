@@ -1,6 +1,8 @@
 # nginx配置指南
-本配置只用于解释每个参数的功能，直接使用可能会报错！
 
+[返回首页](https://sturuby.github.io/nginx_learning/)
+
+本配置只用于解释每个参数的功能，直接使用可能会报错！
 
 ## nginx全局配置参数
 ``` nginx

@@ -1,5 +1,7 @@
 # nginx 命令行
 
+[返回首页](https://sturuby.github.io/nginx_learning/)
+
 ## nginx命令行命令
 
 - 格式： nginx -s reload

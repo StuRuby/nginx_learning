@@ -1,4 +1,5 @@
 # 基于OpenResty用Lua语言实现简单服务
+[返回首页](https://sturuby.github.io/nginx_learning/)
 `OpenResty`是一款基于nginx和LuaJIT的web平台,可以在[OpenResty官网](https://openresty.org/cn/)详细了解一下。
 
 ## 下载OpenResty
