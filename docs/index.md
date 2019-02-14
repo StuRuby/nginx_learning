@@ -8,3 +8,4 @@
 - [用nginx搭建一个可用的静态资源web服务器](https://sturuby.github.io/nginx_learning/用nginx搭建一个可用的静态资源web服务器)
 - [用nginx搭建一个具备缓存功能的反向代理服务](https://sturuby.github.io/nginx_learning/用nginx搭建一个具备缓存功能的反向代理服务)
 - [nginx配置指南](https://sturuby.github.io/nginx_learning/nginx配置指南)
+- [Nginx反向代理](https://sturuby.github.io/nginx_learning/Nginx反向代理)
