@@ -100,3 +100,42 @@ location /uploads {
     proxy_pass http://localhost:8080;
 }
 ```
+
+### 带有cookie的遗留应用程序
+
+这里演示一下如何重写cookie的域和路径，以便匹配新的应用端点。
+
+``` nginx
+server {
+    server_name app.example.com;
+    location /url1 {
+        proxy_cookie_domain url1.example.com app.example.com;
+        proxy_cookie_path $uri /url1$uri;
+        proxy_redirect default;
+        proxy_pass http://url1.example.com/;
+    } 
+    location /url2 {
+        proxy_cookie_domain url2.example.org app.example.com;
+        proxy_cookie_path $uri /url2$uri;
+        proxy_redirect default;
+        proxy_pass http://url2.example.org/;
+    }
+    location / {
+        proxy_pass http://localhost:8080;
+    }
+}
+
+```
+
+### upstream模块
+
+与proxy模块紧密搭配的是upstream模块。upstream模块将会启用一个新的配置区段，在该区段定义了一组上游服务器，这些服务器可能被设置了不同的权重，也可能是不同的类型，也可能出于需要对服务器进行维护，故而标记为down.
+
+这里列一下upstream区段中的有效指令
+
+|upstream模块指令|说明|
+|--|--|
+|ip_hash|该指令通过IP地址的哈希值确保客户端均匀的连接所有服务器，键值基于C类地址|
+|keepalive|该指令指定每一个worker进程缓存到上游服务器的连接数。在使用HTTP连接时，proxy_http_version应该设置为1.1，并且将proxy_set_header设置为Connection ""|
+|least_conn|该指令激活负载均衡算法，将请求发送到活跃连接数最少的那台服务器|
+
