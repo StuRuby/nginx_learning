@@ -138,11 +138,113 @@ server {
 |ip_hash|该指令通过IP地址的哈希值确保客户端均匀的连接所有服务器，键值基于C类地址|
 |keepalive|该指令指定每一个worker进程缓存到上游服务器的连接数。在使用HTTP连接时，proxy_http_version应该设置为1.1，并且将proxy_set_header设置为Connection ""|
 |least_conn|该指令激活负载均衡算法，将请求发送到活跃连接数最少的那台服务器|
-|server|该指令为upstream定义一个服务器地址（带有TCP端口号的域名、IP地址，或者是Unix域套接字）和可选参数。参数如下。
+|server|该指令为upstream定义一个服务器地址（带有TCP端口号的域名、IP地址，或者是Unix域套接字）和可选参数。
+
+`server`参数如下。
+
 - weight ：该参数设置一个服务器的优先级优于其他服务器
 - max_fails:该参数设置在fail_timeout时间之内尝试对一个服务器连接的最大次数，如果超过这个次数，那么就会被标记为down。
 - fail_timeout:在这个指定的时间内服务器必须提供响应，如果在这个时间内没有收到响应，那么服务器将会被标记为down状态。
 - backup ： 一旦其他服务器宕机，那么仅有该参数标记的机器才会接收请求。
 - down：该参数标记为一个服务器不再接受任何请求。
+
+
+### 保持活动连接
+
+Nginx服务器将会为每一个worker进程保持同上游服务器的连接。在Nginx需要同上游服务器持续保持一定数量的打开连接时，连接缓存非常有用。如果上游服务器通过HTTP进行“对话”，那么Nginx将会使用HTTP/1.1协议的持久连接机制维护这些打开的连接。
+
+配置示例如下：
+
+``` nginx
+upstream apache {
+    server 127.0.0.1:8080;
+    keepalive 32; 
+}
+
+location / {
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_pass http://apache;
+}
+
+```
+
+这种机制也可以被用于代理非HTTP连接中，下面演示一下Nginx与两个memcached实例保持64个连接。
+
+``` nginx
+upstream memcaches {
+    server 10.0.100.10:11211;
+    server 10.0.100.20:11211;
+    keepalive 64;
+}
+```
+
+如果从默认轮询负载均衡算法切换为ip_hash或者least_conn，那么我们需要在keepalive之前指定负载均衡算法。
+
+``` nginx
+upstream apaches {
+    least_conn;
+    server 10.0.200.10:80;
+    server 10.0.200.20:80;
+    keepalive 32;
+}
+```
+
+### 上游服务器的类型
+
+上游服务器是Nginx代理连接的一个服务器，他可以是不同的物理机器，也可以是虚拟机，但是并不是必须如此。
+
+### 单个上游服务器
+
+这里以单个apache服务器为例，假设Apache已配置为在localhost:8080上监听。下面是一个最简单的配置。
+``` nginx
+server {
+    location / {
+        proxy_pass http://localhost:8080;
+    }
+}
+```
+
+这个最简单的配置,Nginx将会终止所有的客户端连接，然后将代理所有请求到本地主机的TCP协议的8080端口上。一般情况下，这种配置还需要进行再次扩展，以便让Nginx直接提供任何静态文件，然后代理服务器将剩余的请求发送到Apache。
+
+``` nginx
+server {
+    location / {
+        try_files $uri @apache;
+    }
+
+    location @apache {
+        proxy_pass http://127.0.0.1:8080;
+    }
+}
+```
+
+### 多个上游服务器
+
+有时候我们也可以需要使用Nginx代理请求到多个上游服务器，这可以通过upstream来声明，定义多个server可以参考upstream中的proxy_pass指令。
+
+``` nginx
+upstream app {
+    server 127.0.0.1:9000;
+    server 127.0.0.1:9001;
+    server 127.0.0.1:9002;
+}
+
+server {
+    location / {
+        proxy_pass http://app;
+    }
+}
+```
+使用这个配置，Nginx将会通过轮询的方式将连续的请求传递给3个上游服务器。在一个应用程序仅处理一个请求时，这个配置很有用。
+
+
+## 负载均衡
+
+Nginx在作为反向代理的同时，还提供了负载均衡器的功能，他提供了三种不同的负载均衡算法，你可以依据项目的使用环境，选择其中的一种。
+
+- 轮询（round-robin）：轮询算法是基于在队列中谁是下一个的原理确保将访问量均匀的分配给每一个上游服务器的。
+- IP哈希（IP hash）：Nginx通过IPV4地址的前三个字节或者整个IPV6地址作为哈希键来实现，同一个IP地址池地址总是被映射到同一个上游服务器，所以这个机制的目的不是要确保公平分配给每一台上游服务器，而是在客户端和上游服务器之间实现一致映射。
+- 最少连接数 （Least Connection）：该算法的目的是通过选择一个活跃的最少连接数服务器，然后将负载均匀分配给上游服务器，如果上游服务器的处理能力不相同，那么可以为server指令使用weight参数来指示。
 
 
