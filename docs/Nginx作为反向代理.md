@@ -239,12 +239,78 @@ server {
 使用这个配置，Nginx将会通过轮询的方式将连续的请求传递给3个上游服务器。在一个应用程序仅处理一个请求时，这个配置很有用。
 
 
-## 负载均衡
+### 负载均衡
 
 Nginx在作为反向代理的同时，还提供了负载均衡器的功能，他提供了三种不同的负载均衡算法，你可以依据项目的使用环境，选择其中的一种。
 
 - 轮询（round-robin）：轮询算法是基于在队列中谁是下一个的原理确保将访问量均匀的分配给每一个上游服务器的。
 - IP哈希（IP hash）：Nginx通过IPV4地址的前三个字节或者整个IPV6地址作为哈希键来实现，同一个IP地址池地址总是被映射到同一个上游服务器，所以这个机制的目的不是要确保公平分配给每一台上游服务器，而是在客户端和上游服务器之间实现一致映射。
 - 最少连接数 （Least Connection）：该算法的目的是通过选择一个活跃的最少连接数服务器，然后将负载均匀分配给上游服务器，如果上游服务器的处理能力不相同，那么可以为server指令使用weight参数来指示。
+
+### 使用错误文件处理上游服务器问题
+
+另外还有一些上游服务器无法处理请求的情况，在这种情况下，可以将Nginx配置为从它的本地磁盘提供一个文件。
+
+``` nginx
+server {
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root share/examples/nginx/html;
+    }
+}
+```
+或者从外部网站提供
+
+``` nginx
+server {
+    error_page 500 http://www.example.com/maintenance.html;
+}
+```
+
+当代理到一组上游服务器时，我们可能想定义一组外部上游服务器作为一个`fallback`服务器，以便在其他服务器不能提供请求时在提供请求。当使用这种后备服务器针对请求的uri来投递一个定制的响应时，这种做法非常有用
+
+``` nginx
+upstream app {
+    server 127.0.0.1:9000;
+    server 127.0.0.1:9001;
+    server 127.0.0.1:9002;
+}
+
+server {
+    location / {
+        error_page 500 502 503 504 = @fallback;
+        proxy_pass http://app;
+    }
+
+    location @fallback {
+        proxy_pass http://127.0.0.1:8080;
+    }
+}
+```
+
+`"="`号出现在前面的`error_page`行，他被用于指明我们想返回一个状态代码，结果来自于前面的参数，这里指的就是`@fallback`区段的定义。
+
+再将`proxy_intercept_errors`指令设置为`on`之后，Nginx支持error_page指定为400或更大的错误代码转向。
+``` nginx
+server {
+    proxy_intercept_errors on;
+    error_page 400 403 404 /40x.html;
+    location = /40x.html{
+        root share/examples/nginx/html;
+    }
+}
+```
+
+### 确定客户端真实的IP地址
+
+在使用代理服务器时，客户端不能直接连接到上游服务器。因此，上游服务器不能从客户端直接获取信息。任何信息，例如客户端的IP地址，都需要通过头来传递。
+
+```nginx
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_addr_x_forwarded_for;
+```
+
+
+
 
 
